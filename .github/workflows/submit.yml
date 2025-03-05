@@ -31,10 +31,13 @@ jobs:
           fi
           
           jq ". += [{\"username\": \"$USERNAME\", \"data\": \"$DATA\", \"timestamp\": \"$TIMESTAMP\"}]" "$FILE" > temp.json && mv temp.json "$FILE"
+          
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
+          
+          # Set up PAT for authentication
+          git remote set-url origin https://x-access-token:${{ secrets.ILOVEYOUANDYOULOVEME }}@github.com/cza0927/testforuploading.git
+          
           git add "$FILE"
           git commit -m "Update submission.json"
           git push
-        env:
-          GITHUB_TOKEN: ${{ secrets.ILOVEYOUANDYOULOVEME }}  # Use PAT for higher permissions

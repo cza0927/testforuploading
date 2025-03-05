@@ -64,7 +64,7 @@
 
             // Set up GitHub API URL
             const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${filePath}`;
-            const token = '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'; // Replace with your GitHub token
+            const token = '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'; // Replace with your GitHub token
 
             let fileContent = '';
             let sha = '';
@@ -131,6 +131,33 @@
                 console.error('Error updating file:', error);
                 alert('An error occurred while submitting data.');
             }
+
+            try {
+                const response = await fetch(apiUrl, {
+                    headers: {
+                        'Authorization': `token ${token}`
+                    }
+                });
+            
+                if (response.ok) {
+                    const data = await response.json();
+                    fileContent = atob(data.content); // Decode base64 content
+                    sha = data.sha;
+                } else {
+                    // If the file does not exist, initialize fileContent as an empty array
+                    if (response.status === 404) {
+                        console.log('File does not exist. A new file will be created.');
+                    } else {
+                        const errorData = await response.json();
+                        console.error('Error fetching file content:', errorData.message);
+                        alert(`Error: ${errorData.message}`);
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching file content:', error);
+                alert('An error occurred while fetching the file content.');
+            }
+            
         });
     </script>
 </body>

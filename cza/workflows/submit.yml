@@ -1,0 +1,38 @@
+name: Handle Submission
+
+on:
+  workflow_dispatch:
+    inputs:
+      username:
+        description: 'Username'
+        required: true
+        type: string
+      data:
+        description: 'Data'
+        required: true
+        type: string
+
+jobs:
+  update_submission:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Update submission.json
+        run: |
+          FILE="submission.json"
+          USERNAME="${{ github.event.inputs.username }}"
+          DATA="${{ github.event.inputs.data }}"
+          TIMESTAMP=$(date -Iseconds)
+          
+          if [ ! -f "$FILE" ]; then
+            echo "[]" > "$FILE"
+          fi
+          
+          jq ". += [{\"username\": \"$USERNAME\", \"data\": \"$DATA\", \"timestamp\": \"$TIMESTAMP\"}]" "$FILE" > temp.json && mv temp.json "$FILE"
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add "$FILE"
+          git commit -m "Update submission.json"
+          git push

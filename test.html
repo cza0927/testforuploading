@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Submission</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+        }
+        .form-container {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        label, input, textarea {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Submit Data to GitHub</h1>
+    <div class="form-container">
+        <form id="submissionForm">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+
+            <label for="data">Data:</label>
+            <textarea id="data" name="data" rows="4" required></textarea>
+
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+
+    <script>
+        const form = document.getElementById('submissionForm');
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const data = document.getElementById('data').value;
+
+            const submission = {
+                username: username,
+                data: data,
+                timestamp: new Date().toISOString()
+            };
+
+            // Define GitHub repository and file path
+            const repoOwner = 'cza0927';
+            const repoName = 'testforuploading';
+            const filePath = 'submission.json';
+
+            // Set up GitHub API
+            const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${filePath}`;
+            const token = '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'; // Replace with your GitHub token
+
+            // Fetch current content of submission.json if it exists
+            let fileContent = '';
+            let sha = '';
+
+            try {
+                const response = await fetch(apiUrl, {
+                    headers: {
+                        'Authorization': `token ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    fileContent = atob(data.content); // Decode base64 content
+                    sha = data.sha;
+                }
+            } catch (error) {
+                console.error('Error fetching file content:', error);
+            }
+
+            // Add new submission to the existing content
+            const submissions = fileContent ? JSON.parse(fileContent) : [];
+            submissions.push(submission);
+
+            // Prepare data to commit to GitHub
+            const updatedContent = JSON.stringify(submissions, null, 2);
+            const encodedContent = btoa(updatedContent); // Encode to base64
+
+            // Commit the update to GitHub
+            const commitMessage = 'Add new submission';
+            const updateData = {
+                message: commitMessage,
+                content: encodedContent,
+                sha: sha
+            };
+
+            try {
+                const updateResponse = await fetch(apiUrl, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updateData)
+                });
+
+                if (updateResponse.ok) {
+                    alert('Submission successful!');
+                } else {
+                    alert('Failed to update submission.');
+                }
+            } catch (error) {
+                console.error('Error updating file:', error);
+                alert('An error occurred while submitting data.');
+            }
+        });
+    </script>
+</body>
+</html>
+

@@ -25,14 +25,16 @@ jobs:
           USERNAME="${{ github.event.inputs.username }}"
           DATA="${{ github.event.inputs.data }}"
           TIMESTAMP=$(date -Iseconds)
-          
+
           if [ ! -f "$FILE" ]; then
             echo "[]" > "$FILE"
           fi
-          
+
           jq ". += [{\"username\": \"$USERNAME\", \"data\": \"$DATA\", \"timestamp\": \"$TIMESTAMP\"}]" "$FILE" > temp.json && mv temp.json "$FILE"
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
           git add "$FILE"
           git commit -m "Update submission.json"
           git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.JOHARI_TOKEN_FOR_TEST }}  # 使用 Secret Token

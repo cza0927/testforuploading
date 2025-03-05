@@ -19,8 +19,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
         with:
-          # Ensure the token has write access
-          token: ${{ secrets.ILOVEYOUANDYOULOVEME }}
+          token: ${{ secrets.ILOVEYOUANDYOULOVEME }}  # Use the PAT token for checkout
 
       - name: Update submission.json
         run: |
@@ -28,21 +27,18 @@ jobs:
           USERNAME="${{ github.event.inputs.username }}"
           DATA="${{ github.event.inputs.data }}"
           TIMESTAMP=$(date -Iseconds)
-          
+
           if [ ! -f "$FILE" ]; then
             echo "[]" > "$FILE"
           fi
-          
+
           jq ". += [{\"username\": \"$USERNAME\", \"data\": \"$DATA\", \"timestamp\": \"$TIMESTAMP\"}]" "$FILE" > temp.json && mv temp.json "$FILE"
-          
+
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
-          
-          # Use Personal Access Token (PAT) for authentication
+
           git remote set-url origin https://x-access-token:${{ secrets.ILOVEYOUANDYOULOVEME }}@github.com/cza0927/testforuploading.git
-          
+
           git add "$FILE"
           git commit -m "Update submission.json"
           git push
-        env:
-          GITHUB_TOKEN: ${{ secrets.ILOVEYOUANDYOULOVEME }}  # Explicitly pass the PAT to the job

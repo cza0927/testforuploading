@@ -62,14 +62,14 @@
             const repoName = 'testforuploading';
             const filePath = 'submission.json';
 
-            // Set up GitHub API
+            // Set up GitHub API URL
             const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${filePath}`;
             const token = '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'; // Replace with your GitHub token
 
-            // Fetch current content of submission.json if it exists
             let fileContent = '';
             let sha = '';
 
+            // Fetch the current content of submission.json if it exists
             try {
                 const response = await fetch(apiUrl, {
                     headers: {
@@ -81,25 +81,34 @@
                     const data = await response.json();
                     fileContent = atob(data.content); // Decode base64 content
                     sha = data.sha;
+                } else {
+                    // If the file does not exist, initialize fileContent as an empty array
+                    if (response.status === 404) {
+                        console.log('File does not exist. A new file will be created.');
+                    } else {
+                        throw new Error(`Failed to fetch file content: ${response.statusText}`);
+                    }
                 }
             } catch (error) {
                 console.error('Error fetching file content:', error);
+                alert('An error occurred while fetching the file content.');
+                return; // Stop further execution if fetching fails
             }
 
             // Add new submission to the existing content
             const submissions = fileContent ? JSON.parse(fileContent) : [];
             submissions.push(submission);
 
-            // Prepare data to commit to GitHub
+            // Prepare the content to be committed to GitHub
             const updatedContent = JSON.stringify(submissions, null, 2);
-            const encodedContent = btoa(updatedContent); // Encode to base64
+            const encodedContent = btoa(updatedContent); // Base64 encode the content
 
             // Commit the update to GitHub
             const commitMessage = 'Add new submission';
             const updateData = {
                 message: commitMessage,
                 content: encodedContent,
-                sha: sha
+                sha: sha || '' // If sha is empty (first time), pass an empty string
             };
 
             try {
@@ -115,7 +124,8 @@
                 if (updateResponse.ok) {
                     alert('Submission successful!');
                 } else {
-                    alert('Failed to update submission.');
+                    const responseData = await updateResponse.json();
+                    alert(`Failed to update submission. Response: ${responseData.message}`);
                 }
             } catch (error) {
                 console.error('Error updating file:', error);
@@ -125,4 +135,3 @@
     </script>
 </body>
 </html>
-
